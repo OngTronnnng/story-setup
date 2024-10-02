@@ -1,0 +1,2 @@
+# story-setup
+Guide testnet
