@@ -1,4 +1,4 @@
-# story-setup
+### story-setup
 #!/bin/bash
 # Update and install dependencies
 ```
@@ -41,8 +41,9 @@ go build -o story ./client
 sudo mv ~/story/story ~/go/bin/
 ```
 # Initialize the Story client
+```
 story init --moniker test --network iliad
-
+```
 # Create Geth service file
 ```
 sudo tee /etc/systemd/system/story-geth.service > /dev/null <<EOF
@@ -91,4 +92,28 @@ sudo systemctl restart story-geth && sudo journalctl -u story-geth -f
 sudo systemctl daemon-reload
 sudo systemctl enable story
 sudo systemctl restart story && sudo journalctl -u story -f
+```
+## Node Sync Status Checker
+```
+#!/bin/bash
+rpc_port=$(grep -m 1 -oP '^laddr = "\K[^"]+' "$HOME/.story/story/config/config.toml" | cut -d ':' -f 3)
+while true; do
+  local_height=$(curl -s localhost:$rpc_port/status | jq -r '.result.sync_info.latest_block_height')
+  network_height=$(curl -s https://story-testnet-rpc.itrocket.net/status | jq -r '.result.sync_info.latest_block_height')
+
+  if ! [[ "$local_height" =~ ^[0-9]+$ ]] || ! [[ "$network_height" =~ ^[0-9]+$ ]]; then
+    echo -e "\033[1;31mError: Invalid block height data. Retrying...\033[0m"
+    sleep 5
+    continue
+  fi
+
+  blocks_left=$((network_height - local_height))
+  if [ "$blocks_left" -lt 0 ]; then
+    blocks_left=0
+  fi
+
+  echo -e "\033[1;33mYour Node Height:\033[1;34m $local_height\033[0m \033[1;33m| Network Height:\033[1;36m $network_height\033[0m \033[1;33m| Blocks Left:\033[1;31m $blocks_left\033[0m"
+
+  sleep 5
+done
 ```
