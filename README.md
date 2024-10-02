@@ -5,7 +5,7 @@
 sudo apt update && sudo apt upgrade -y
 sudo apt install curl git wget htop tmux build-essential jq make lz4 gcc unzip -y
 ```
-# Install Go, if needed
+# Install Go
 ```
 cd $HOME
 VER="1.23.1"
